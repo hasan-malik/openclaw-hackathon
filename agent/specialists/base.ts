@@ -84,7 +84,7 @@ export abstract class BaseSpecialist {
         findingId: result.findingId,
         severity: result.severity,
         title: result.title,
-        amountUsdc: result.amountUsdc,
+        amountUsdc: (result as { charged?: string }).charged ?? (result as { amountUsdc?: string }).amountUsdc,
       };
     } catch (err) {
       return { ...base, authorized: true, vulnerable: false, error: (err as Error).message };
