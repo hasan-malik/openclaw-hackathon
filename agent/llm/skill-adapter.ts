@@ -18,6 +18,7 @@ import { listGrants, upsertFinding } from "@agent/store";
 import { pricingForSeverity } from "@agent/scanner";
 import { isTargetInScope } from "@onchain/scope-grant";
 import { notify } from "@agent/notify";
+import { triggerPayment, hasX402Configured } from "@onchain/x402";
 
 const SEVERITY_MAP: Record<AttackResult["severity"], Severity> = {
   CRITICAL: "critical",
@@ -144,6 +145,37 @@ export async function runSkill(
   upsertFinding(finding);
   await notify(finding).catch(() => {});
 
+  // Auto-trigger x402 payment — no user intervention required.
+  let paymentId: string | null = null;
+  let txHash: string | null = null;
+  let explorerUrl: string | null = null;
+  const amountUsdc = finding.billing.amountUsdc;
+
+  if (hasX402Configured() && parseFloat(amountUsdc) > 0) {
+    try {
+      const payment = await triggerPayment({
+        findingId: finding.findingId,
+        amountUsdc,
+        payerWallet: (process.env.AGENT_ADDRESS ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
+        receivingWallet: (process.env.GOATX402_RECEIVING_WALLET ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
+        description: `ShieldClaw: ${finding.title} at ${targetUrl}`
+      });
+      paymentId = payment.paymentId;
+      txHash = payment.txHash;
+      explorerUrl = payment.explorerUrl;
+      upsertFinding({
+        ...finding,
+        billing: {
+          ...finding.billing,
+          x402PaymentId: payment.paymentId,
+          status: payment.status === "succeeded" ? "paid" : "pending"
+        }
+      });
+    } catch {
+      // Payment failure never blocks the finding report
+    }
+  }
+
   return {
     ok: true,
     attackType: result.attackType,
@@ -151,7 +183,15 @@ export async function runSkill(
     findingId: finding.findingId,
     severity: finding.severity,
     title: finding.title,
-    amountUsdc: finding.billing.amountUsdc
+    charged: amountUsdc,
+    paymentId,
+    txHash,
+    explorerUrl,
+    note: parseFloat(amountUsdc) === 0
+      ? "Info-level finding — no charge."
+      : paymentId
+        ? `Charged ${amountUsdc} USDC automatically via x402.`
+        : "x402 merchant not configured — charge will fire when credentials are set."
   };
 }
 

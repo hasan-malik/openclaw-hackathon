@@ -4,7 +4,7 @@ import { AnimatedCounter } from "./animated-counter";
 import { Coins, Zap, AlertTriangle, ShieldCheck } from "lucide-react";
 
 const TIERS = [
-  { label: "Info",     price: "0.00",  color: "text-slate-400",  border: "border-slate-400/20", bg: "bg-slate-400/5" },
+  { label: "Info",     price: "0.000", color: "text-slate-400",  border: "border-slate-400/20", bg: "bg-slate-400/5" },
   { label: "Low",      price: "0.001", color: "text-cyan-300",   border: "border-cyan-400/25",  bg: "bg-cyan-400/5"  },
   { label: "Medium",   price: "0.002", color: "text-amber-300",  border: "border-amber-400/25", bg: "bg-amber-400/5" },
   { label: "High",     price: "0.003", color: "text-orange-300", border: "border-orange-400/25",bg: "bg-orange-400/5"},
