@@ -289,16 +289,21 @@ const HANDLERS: Record<string, ToolHandler> = {
       }
     });
 
+    const noteMap: Record<string, string> = {
+      succeeded: "x402 order created AND on-chain USDC transfer submitted. Tx visible on the GOAT explorer link.",
+      pending: "x402 order created but on-chain transfer hasn't fired yet — check raw for diagnostics.",
+      failed: "x402 flow failed — see raw for the phase that broke."
+    };
     return {
-      ok: true,
+      ok: result.status !== "failed",
       paymentId: result.paymentId,
       status: result.status,
       txHash: result.txHash,
       explorerUrl: result.explorerUrl,
+      orderUrl: (result as { orderUrl?: string }).orderUrl ?? null,
       configured: hasX402Configured(),
-      note: hasX402Configured()
-        ? "Live x402 charge submitted."
-        : "x402 merchant credentials not configured — returned a stub payment ID. Add GOATX402_* env vars to fire a real charge."
+      note: hasX402Configured() ? noteMap[result.status] ?? "" : "x402 merchant credentials not configured.",
+      diagnostics: (result as { raw?: unknown }).raw
     };
   },
 
