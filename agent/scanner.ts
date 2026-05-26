@@ -132,13 +132,16 @@ export function nucleiResultToFinding(
 }
 
 export function pricingForSeverity(severity: Severity): string {
+  // Pay-per-finding. x402 platform enforces a $0.10 minimum charge,
+  // so the floor here is 0.10 USDC for any billable severity. Info
+  // findings are free (we don't bill on noise).
   return (
     {
-      info: "0.10",
-      low: "0.25",
-      medium: "1.00",
-      high: "5.00",
-      critical: "20.00"
+      info: "0.000",
+      low: "0.10",
+      medium: "0.10",
+      high: "0.15",
+      critical: "0.25"
     } satisfies Record<Severity, string>
   )[severity];
 }
