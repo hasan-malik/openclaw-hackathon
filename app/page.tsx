@@ -2,6 +2,7 @@ import { AgentHeader } from "@/components/agent-header";
 import { FindingCard } from "@/components/finding-card";
 import { ScopeGrantCard } from "@/components/scope-grant-card";
 import { StatsRow } from "@/components/stats-row";
+import { ChatWidget } from "@/components/chat-widget";
 import { listFindings, listGrants, upsertFinding, upsertGrant } from "@agent/store";
 import { mockFindings, mockGrant } from "@agent/mock-data";
 import { getAgentStatus } from "@/lib/agent-status";
@@ -94,6 +95,7 @@ export default async function DashboardPage() {
           </div>
         </section>
       </main>
+      <ChatWidget />
     </>
   );
 }
