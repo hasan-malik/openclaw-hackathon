@@ -133,7 +133,7 @@ const HANDLERS: Record<string, ToolHandler> = {
     const status = await getAgentStatus();
     return {
       ...status,
-      registryUrl: status.agentId ? `https://8004scan.io/agents/${status.agentId}?chain=2345` : null
+      registryUrl: status.agentId ? "https://8004scan.io/agents?chain=2345" : null
     };
   },
 
