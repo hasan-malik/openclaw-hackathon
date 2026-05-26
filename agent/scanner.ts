@@ -132,13 +132,14 @@ export function nucleiResultToFinding(
 }
 
 export function pricingForSeverity(severity: Severity): string {
+  // Pay-per-finding: $0 if no vuln found, price scales with severity.
   return (
     {
-      info: "0.10",
-      low: "0.25",
-      medium: "1.00",
-      high: "5.00",
-      critical: "20.00"
+      info: "0.000",
+      low: "0.001",
+      medium: "0.002",
+      high: "0.003",
+      critical: "0.005"
     } satisfies Record<Severity, string>
   )[severity];
 }

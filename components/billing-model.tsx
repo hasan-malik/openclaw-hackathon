@@ -1,7 +1,15 @@
 "use client";
 
 import { AnimatedCounter } from "./animated-counter";
-import { Coins, Zap, AlertTriangle, Repeat } from "lucide-react";
+import { Coins, Zap, AlertTriangle, ShieldCheck } from "lucide-react";
+
+const TIERS = [
+  { label: "Info",     price: "0.00",  color: "text-slate-400",  border: "border-slate-400/20", bg: "bg-slate-400/5" },
+  { label: "Low",      price: "0.001", color: "text-cyan-300",   border: "border-cyan-400/25",  bg: "bg-cyan-400/5"  },
+  { label: "Medium",   price: "0.002", color: "text-amber-300",  border: "border-amber-400/25", bg: "bg-amber-400/5" },
+  { label: "High",     price: "0.003", color: "text-orange-300", border: "border-orange-400/25",bg: "bg-orange-400/5"},
+  { label: "Critical", price: "0.005", color: "text-red-300",    border: "border-red-400/25",   bg: "bg-red-400/5"  },
+];
 
 export function BillingModel() {
   return (
@@ -9,73 +17,48 @@ export function BillingModel() {
       <div className="mb-5 flex items-center justify-between">
         <div>
           <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-300">Billing Model</div>
-          <div className="mt-1 text-lg font-semibold">Two x402 primitives. One protocol.</div>
+          <div className="mt-1 text-lg font-semibold">Pay per finding. Nothing if we find nothing.</div>
         </div>
         <div className="text-right">
           <div className="font-mono text-2xl text-glow text-emerald-300">
-            <AnimatedCounter target={29_730.5} prefix="$" decimals={2} liveIncrement={0.3} />
+            <AnimatedCounter target={0} prefix="$" decimals={2} />
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-muted">total revenue · 30d</div>
+          <div className="text-[10px] uppercase tracking-widest text-muted">scan fee · always</div>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Subscription column */}
-        <div className="rounded-lg border border-emerald-400/25 bg-emerald-400/5 p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-md bg-emerald-400/15 text-emerald-300">
-              <Repeat size={14} />
-            </div>
-            <div>
-              <div className="text-xs font-medium text-emerald-200">Monthly subscription</div>
-              <div className="text-[10px] text-emerald-300/70">recurring · per asset under watch</div>
-            </div>
-            <div className="ml-auto rounded-full border border-emerald-400/30 bg-bg/40 px-2 py-0.5 font-mono text-[10px] text-emerald-300">
-              $50 / mo · asset
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Stat label="Assets watched" value={468} accent="text-emerald-300" />
-            <Stat label="Active customers" value={47} accent="text-emerald-300" />
-            <Stat label="MRR" value={23_400} prefix="$" accent="text-emerald-300" />
-            <Stat label="Renewal rate" value={94} suffix="%" decimals={0} accent="text-emerald-300" />
-          </div>
-          <div className="mt-3 rounded-md bg-bg/40 px-3 py-2 text-[11px] leading-relaxed text-emerald-200/80">
-            Auto-settles via x402 at month boundary. Includes continuous monitoring + info/low/medium findings.
-          </div>
-        </div>
-
-        {/* Urgency column */}
-        <div className="rounded-lg border border-red-400/25 bg-red-400/5 p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-md bg-red-400/15 text-red-300">
-              <Zap size={14} />
-            </div>
-            <div>
-              <div className="text-xs font-medium text-red-200">Urgency premium</div>
-              <div className="text-[10px] text-red-300/70">event-driven · critical &amp; high only</div>
-            </div>
-            <div className="ml-auto rounded-full border border-red-400/30 bg-bg/40 px-2 py-0.5 font-mono text-[10px] text-red-300">
-              $20 / $5
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Stat label="Critical fires" value={117} accent="text-red-300" />
-            <Stat label="High fires" value={384} accent="text-orange-300" />
-            <Stat label="Premium rev" value={4_260} prefix="$" accent="text-red-300" />
-            <Stat label="Avg time-to-fire" value={2.3} suffix="s" decimals={1} accent="text-red-300" />
-          </div>
-          <div className="mt-3 rounded-md bg-bg/40 px-3 py-2 text-[11px] leading-relaxed text-red-200/80">
-            Immediate x402 micropayment when a critical or high finding lands. Aligns incentives without breaking the subscription model.
+      {/* Guarantee banner */}
+      <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-400/30 bg-emerald-400/5 px-4 py-3">
+        <ShieldCheck size={18} className="shrink-0 text-emerald-300" />
+        <div>
+          <div className="text-sm font-medium text-emerald-200">Zero-cost guarantee</div>
+          <div className="text-[11px] text-emerald-300/70">
+            If ShieldClaw finds no vulnerabilities, you pay nothing. No scan fee, no monitoring fee, no invoice. Ever.
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 rounded-md border border-cyan-400/15 bg-cyan-400/5 px-4 py-3 md:grid-cols-4">
-        <Footer label="Combined per-customer" value="$632 / mo · avg" icon={<Coins size={12} className="text-cyan-300" />} />
-        <Footer label="Dispute rate" value="2.4% · 7d window" icon={<AlertTriangle size={12} className="text-cyan-300" />} />
-        <Footer label="On-chain receipts" value="501 · 30d" icon={<Zap size={12} className="text-cyan-300" />} />
-        <Footer label="Reputation stake" value="Active · 0 slashings" icon={<Repeat size={12} className="text-cyan-300" />} />
+      {/* Per-severity pricing */}
+      <div className="mb-4">
+        <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted">Per-finding price · paid via x402 on confirmation</div>
+        <div className="grid grid-cols-5 gap-2">
+          {TIERS.map((t) => (
+            <div key={t.label} className={`rounded-lg border ${t.border} ${t.bg} p-3 text-center`}>
+              <div className={`text-[10px] uppercase tracking-widest ${t.color}`}>{t.label}</div>
+              <div className={`mt-1 font-mono text-xl font-semibold ${t.color}`}>
+                {t.price === "0.000" ? <span className="text-base text-muted">free</span> : `$${t.price}`}
+              </div>
+              <div className="mt-0.5 text-[9px] text-muted">USDC</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 rounded-md border border-cyan-400/15 bg-cyan-400/5 px-4 py-3 md:grid-cols-4">
+        <Footer label="Payment method" value="x402 · instant USDC" icon={<Zap size={12} className="text-cyan-300" />} />
+        <Footer label="Dispute window" value="7 days · on-chain" icon={<AlertTriangle size={12} className="text-cyan-300" />} />
+        <Footer label="False positive" value="0 charge · rep slashed" icon={<ShieldCheck size={12} className="text-cyan-300" />} />
+        <Footer label="Scan fee" value="$0.00 · always" icon={<Coins size={12} className="text-cyan-300" />} />
       </div>
     </section>
   );

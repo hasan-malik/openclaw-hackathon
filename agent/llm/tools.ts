@@ -123,6 +123,12 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
       properties: { targetUrl: { type: "string" as const } },
       required: ["targetUrl"]
     }
+  },
+  {
+    name: "get_dashboard_metrics",
+    description:
+      "Return live aggregate metrics from the agent store: finding counts by severity/category/attack-vector, USDC paid vs pending, patch rate, active scope grants, and per-skill breakdowns. Use this to answer questions about posture, coverage, top threats, or billing summary.",
+    input_schema: { type: "object" as const, properties: {} }
   }
 ];
 
@@ -139,19 +145,19 @@ const HANDLERS: Record<string, ToolHandler> = {
 
   get_pricing: async () => ({
     currency: "USDC",
-    model: "hybrid",
-    subscription: {
-      pricePerAssetMonthly: "50.00",
-      includes: "continuous monitoring + info/low/medium findings"
-    },
-    urgencyPremium: {
-      critical: "20.00",
-      high: "5.00",
-      note: "Fires as an immediate x402 micropayment when the finding lands mid-period."
+    model: "pay-per-finding",
+    guarantee: "You pay nothing if no vulnerability is found. Zero scan fee. Zero monitoring fee.",
+    perFinding: {
+      info:     "0.000",
+      low:      "0.001",
+      medium:   "0.002",
+      high:     "0.003",
+      critical: "0.005"
     },
     disputeWindowDays: 7,
+    slashing: "Disputed findings are not billed and slash agent on-chain reputation.",
     explanation:
-      "Two billing primitives via x402: a recurring monthly subscription per asset under watch, plus event-driven urgency premiums for critical/high findings. The hybrid is predictable for the customer and event-aligned for serious issues."
+      "Pure pay-per-finding via x402. If the agent finds nothing, you owe nothing. When a vulnerability is confirmed, an x402 USDC micropayment fires automatically — no invoice, no human approval. Pricing scales with severity so the cost always reflects the risk."
   }),
 
   list_scope_grants: async () => {
@@ -337,7 +343,74 @@ const HANDLERS: Record<string, ToolHandler> = {
   port_scan: async ({ targetUrl }: { targetUrl: string }) => runSkill("port_scan", targetUrl),
   ssl_check: async ({ targetUrl }: { targetUrl: string }) => runSkill("ssl_check", targetUrl),
   credential_exposure: async ({ targetUrl }: { targetUrl: string }) => runSkill("credential_exposure", targetUrl),
-  wallet_auth_bypass: async ({ targetUrl }: { targetUrl: string }) => runSkill("wallet_auth_bypass", targetUrl)
+  wallet_auth_bypass: async ({ targetUrl }: { targetUrl: string }) => runSkill("wallet_auth_bypass", targetUrl),
+
+  get_dashboard_metrics: async () => {
+    const findings = listFindings();
+    const grants = listGrants();
+
+    const bySeverity = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+    const byCategory: Record<string, number> = {};
+    const byAttackType: Record<string, number> = { sql_injection: 0, credential_exposure: 0, port_scan: 0, ssl_check: 0, wallet_auth: 0, other: 0 };
+    let paidUsdc = 0;
+    let pendingUsdc = 0;
+    let paidCount = 0;
+    let disputedCount = 0;
+
+    for (const f of findings) {
+      bySeverity[f.severity] = (bySeverity[f.severity] ?? 0) + 1;
+      byCategory[f.category] = (byCategory[f.category] ?? 0) + 1;
+
+      const t = f.title.toLowerCase();
+      if (t.includes("sql")) byAttackType.sql_injection++;
+      else if (t.includes("credential") || t.includes("secret") || t.includes("env") || t.includes("wallet")) byAttackType.credential_exposure++;
+      else if (t.includes("port")) byAttackType.port_scan++;
+      else if (t.includes("tls") || t.includes("ssl") || t.includes("https")) byAttackType.ssl_check++;
+      else if (t.includes("idor") || t.includes("auth bypass")) byAttackType.wallet_auth++;
+      else byAttackType.other++;
+
+      const amt = Number(f.billing.amountUsdc);
+      if (f.billing.status === "paid") { paidUsdc += amt; paidCount++; }
+      else if (f.billing.status === "pending") pendingUsdc += amt;
+      else if (f.billing.status === "disputed") disputedCount++;
+    }
+
+    const criticalCount = bySeverity.critical;
+    const totalFindings = findings.length;
+    const patchRate = totalFindings > 0 ? Math.round((paidCount / totalFindings) * 100) : 0;
+    const activeGrants = grants.filter(g => Date.now() / 1000 >= g.notBefore && Date.now() / 1000 <= g.notAfter).length;
+
+    return {
+      summary: {
+        totalFindings,
+        bySeverity,
+        byCategory,
+        byAttackType,
+        activeGrants,
+        paidUsdc: paidUsdc.toFixed(2),
+        pendingUsdc: pendingUsdc.toFixed(2),
+        paidCount,
+        disputedCount,
+        patchRate: `${patchRate}%`
+      },
+      posture: {
+        criticalUnpatched: criticalCount - paidCount > 0 ? criticalCount - paidCount : 0,
+        tlsIssues: byAttackType.ssl_check,
+        secretLeaks: byAttackType.credential_exposure,
+        sqlVulns: byAttackType.sql_injection,
+        openPorts: byAttackType.port_scan,
+        authBypasses: byAttackType.wallet_auth
+      },
+      attackVectors: [
+        { name: "SQL Injection", count: byAttackType.sql_injection, skill: "sql_injection_attack" },
+        { name: "Credential Exposure", count: byAttackType.credential_exposure, skill: "credential_exposure" },
+        { name: "Port Surface", count: byAttackType.port_scan, skill: "port_scan" },
+        { name: "SSL / TLS", count: byAttackType.ssl_check, skill: "ssl_check" },
+        { name: "Wallet Auth Bypass", count: byAttackType.wallet_auth, skill: "wallet_auth_bypass" }
+      ],
+      note: "Live data from the agent store. Run scans with sql_injection_attack / port_scan / ssl_check / credential_exposure / wallet_auth_bypass to populate."
+    };
+  }
 };
 
 export async function callTool(name: string, input: unknown): Promise<string> {
