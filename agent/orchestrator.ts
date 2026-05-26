@@ -24,6 +24,7 @@ const PAYER_WALLET = (process.env.AGENT_ADDRESS ?? "0x00000000000000000000000000
 // in the finding records ($20 critical / $5 high etc); only the actual x402
 // charge is scaled down. Override via MAX_SCAN_CHARGE_USDC.
 const MAX_SCAN_CHARGE_USDC = parseFloat(process.env.MAX_SCAN_CHARGE_USDC ?? "0.10");
+const DASHBOARD_URL = (process.env.DASHBOARD_URL || "http://localhost:3000").replace(/\/$/, "");
 
 async function sendTelegram(text: string, chatIdOverride?: number | string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -108,10 +109,10 @@ export async function runOrchestratedScan(targetUrl: string, chatId?: number | s
   }
 
   // ── Master report to Telegram ─────────────────────────────────────────────
+  // Brief by design — vuln details live on the dashboard, not in chat.
   const findingLines = found.map((r, i) =>
-    `${i + 1}. ${severityIcon(r.severity ?? "info")} *${r.agentName}*\n` +
-    `   ${r.title ?? r.skillName} — ${(r.severity ?? "").toUpperCase()}\n` +
-    `   ID: \`${r.findingId?.slice(0, 16)}…\``
+    `${i + 1}. ${severityIcon(r.severity ?? "info")} *${(r.severity ?? "info").toUpperCase()}* · ${r.amountUsdc ?? "—"} USDC` +
+    (r.findingId ? `\n   → [view details](${DASHBOARD_URL}/findings/${r.findingId})` : "")
   );
 
   const refusalLines = refused.map((r) =>
@@ -132,12 +133,13 @@ export async function runOrchestratedScan(targetUrl: string, chatId?: number | s
     ...(refused.length > 0 ? [`⛔ *Refused (no scope grant): ${refused.length}*`, ...refusalLines, ``] : []),
     found.length > 0
       ? [
-          `💰 *Total charged: ${chargedUsdc} USDC (auto via x402)*`,
-          paymentId ? `   ✅ Payment fired automatically` : `   ⚠️ x402 credentials not set — charge skipped`,
-          paymentId ? `   Order: \`${paymentId}\`` : null,
-          txHash ? `   Tx: [${txHash.slice(0, 16)}…](${explorerUrl})` : null
+          `💰 *Charged ${chargedUsdc} USDC* via x402 (auto)`,
+          txHash ? `   Tx: [${txHash.slice(0, 16)}…](${explorerUrl})` : null,
+          paymentId && !txHash ? `   Order: \`${paymentId}\`` : null
         ].filter(Boolean).join("\n")
       : `💰 *No charge — no vulnerabilities found.*`,
+    ``,
+    `📊 Full report: ${DASHBOARD_URL}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
   ].join("\n");
 
