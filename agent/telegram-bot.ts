@@ -94,7 +94,7 @@ bot.on("message", async (msg) => {
     const parts = text.split(/\s+/);
     const targetUrl = parts[1] ?? DEMO_TARGET;
     await sendSafe(chatId, `🔴 Dispatching 6 specialist agents against \`${targetUrl}\`…`, { parse_mode: "Markdown" });
-    runOrchestratedScan(targetUrl).catch((err) => {
+    runOrchestratedScan(targetUrl, chatId).catch((err) => {
       sendSafe(chatId, `⚠️ Orchestrator error: ${(err as Error).message}`);
     });
     return;

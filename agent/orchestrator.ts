@@ -25,9 +25,9 @@ const PAYER_WALLET = (process.env.AGENT_ADDRESS ?? "0x00000000000000000000000000
 // charge is scaled down. Override via MAX_SCAN_CHARGE_USDC.
 const MAX_SCAN_CHARGE_USDC = parseFloat(process.env.MAX_SCAN_CHARGE_USDC ?? "0.10");
 
-async function sendTelegram(text: string): Promise<void> {
+async function sendTelegram(text: string, chatIdOverride?: number | string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const chatId = chatIdOverride ?? process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return;
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
@@ -40,14 +40,15 @@ function severityIcon(s: string) {
   return ({ critical: "🚨", high: "🔴", medium: "🟠", low: "🟡", info: "ℹ️" } as Record<string, string>)[s] ?? "⚪";
 }
 
-export async function runOrchestratedScan(targetUrl: string): Promise<void> {
+export async function runOrchestratedScan(targetUrl: string, chatId?: number | string): Promise<void> {
   const scanStart = Date.now();
 
   await sendTelegram(
     `🛡️ *ShieldClaw Network ACTIVATED*\n` +
     `🎯 Target: \`${targetUrl}\`\n` +
     `🤖 Orchestrator: \`${MASTER_AGENT_ID}\`\n` +
-    `⚡ Dispatching 6 specialist agents simultaneously…`
+    `⚡ Dispatching 6 specialist agents simultaneously…`,
+    chatId
   );
 
   console.log(`[orchestrator] dispatching ${ALL_SPECIALISTS.length} specialists against ${targetUrl}`);
@@ -140,6 +141,6 @@ export async function runOrchestratedScan(targetUrl: string): Promise<void> {
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
   ].join("\n");
 
-  await sendTelegram(report);
+  await sendTelegram(report, chatId);
   console.log(`[orchestrator] scan complete — ${found.length} findings, list=${productionUsdc} USDC, charged=${chargedUsdc} USDC, tx=${txHash ?? "—"}`);
 }
