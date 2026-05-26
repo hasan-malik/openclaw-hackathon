@@ -113,7 +113,17 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
       required: ["findingId", "reason"]
     }
   },
-  ...SKILL_TOOL_SCHEMAS
+  ...SKILL_TOOL_SCHEMAS,
+  {
+    name: "wallet_auth_bypass",
+    description:
+      "Test wallet/portfolio endpoints for authorization bypass (IDOR) — probes without auth and checks if sensitive balance/transaction data is returned. REFUSES if out-of-scope.",
+    input_schema: {
+      type: "object" as const,
+      properties: { targetUrl: { type: "string" as const } },
+      required: ["targetUrl"]
+    }
+  }
 ];
 
 type ToolHandler = (input: any) => Promise<unknown>;
@@ -322,7 +332,8 @@ const HANDLERS: Record<string, ToolHandler> = {
   sql_injection_attack: async ({ targetUrl }: { targetUrl: string }) => runSkill("sql_injection_attack", targetUrl),
   port_scan: async ({ targetUrl }: { targetUrl: string }) => runSkill("port_scan", targetUrl),
   ssl_check: async ({ targetUrl }: { targetUrl: string }) => runSkill("ssl_check", targetUrl),
-  credential_exposure: async ({ targetUrl }: { targetUrl: string }) => runSkill("credential_exposure", targetUrl)
+  credential_exposure: async ({ targetUrl }: { targetUrl: string }) => runSkill("credential_exposure", targetUrl),
+  wallet_auth_bypass: async ({ targetUrl }: { targetUrl: string }) => runSkill("wallet_auth_bypass", targetUrl)
 };
 
 export async function callTool(name: string, input: unknown): Promise<string> {
