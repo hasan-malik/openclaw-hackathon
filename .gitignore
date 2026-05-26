@@ -50,3 +50,6 @@ findings/*.json
 .next/
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Vercel
+.vercel
