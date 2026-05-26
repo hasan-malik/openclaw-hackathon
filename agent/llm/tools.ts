@@ -129,15 +129,19 @@ const HANDLERS: Record<string, ToolHandler> = {
 
   get_pricing: async () => ({
     currency: "USDC",
-    perFinding: {
-      info: "0.10",
-      low: "0.25",
-      medium: "1.00",
+    model: "hybrid",
+    subscription: {
+      pricePerAssetMonthly: "50.00",
+      includes: "continuous monitoring + info/low/medium findings"
+    },
+    urgencyPremium: {
+      critical: "20.00",
       high: "5.00",
-      critical: "20.00"
+      note: "Fires as an immediate x402 micropayment when the finding lands mid-period."
     },
     disputeWindowDays: 7,
-    note: "Customer can dispute any finding within 7 days. Disputed findings are not billed and slash agent reputation."
+    explanation:
+      "Two billing primitives via x402: a recurring monthly subscription per asset under watch, plus event-driven urgency premiums for critical/high findings. The hybrid is predictable for the customer and event-aligned for serious issues."
   }),
 
   list_scope_grants: async () => {

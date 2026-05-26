@@ -64,13 +64,13 @@ export function HeroMetrics({ findingsCount, paidUsdc, onchainTxCount }: Props) 
       caption: "in the live sandbox cohort"
     },
     {
-      label: "USDC Earned",
-      value: paidUsdc,
+      label: "Subscription MRR",
+      value: 23_400 + paidUsdc,
       decimals: 2,
       prefix: "$",
       accent: "emerald",
       icon: <Coins size={14} />,
-      caption: "real settlements, all on GOAT"
+      caption: "monthly recurring · x402-settled"
     },
     {
       label: "On-chain Receipts",

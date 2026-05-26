@@ -15,6 +15,7 @@ import { ThreatHeatmap } from "@/components/threat-heatmap";
 import { GeoAttackFeed } from "@/components/geo-attack-feed";
 import { LatencySparkline } from "@/components/latency-sparkline";
 import { TokenCoverage } from "@/components/token-coverage";
+import { BillingModel } from "@/components/billing-model";
 import { ChatWidget } from "@/components/chat-widget";
 import { listFindings, listGrants, upsertFinding, upsertGrant } from "@agent/store";
 import { mockFindings, mockGrant } from "@agent/mock-data";
@@ -51,6 +52,8 @@ export default async function DashboardPage() {
         <HeroBanner agentId={status.agentId} walletAddress={status.walletAddress} />
 
         <HeroMetrics findingsCount={findings.length} paidUsdc={paidUsdc} onchainTxCount={onchainTxCount} />
+
+        <BillingModel />
 
         <AnimatedGauges />
 
