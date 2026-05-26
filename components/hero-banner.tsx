@@ -37,9 +37,10 @@ export function HeroBanner({ agentId, walletAddress }: Props) {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             {agentId && (
               <Link
-                href={`https://8004scan.io/agents/${agentId}?chain=2345`}
+                href="https://8004scan.io/agents?chain=2345"
                 target="_blank"
                 className="group inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/5 px-3 py-2 text-xs text-cyan-200 transition hover:bg-cyan-400/10"
+                title="ERC-8004 registry · GOAT mainnet (chain 2345)"
               >
                 <ShieldCheck size={14} />
                 <span className="font-mono">Agent #{agentId}</span>

@@ -11,7 +11,7 @@ if (!token) {
 
 const DASHBOARD_URL = (process.env.DASHBOARD_URL || "http://localhost:3000").replace(/\/$/, "");
 const EXPLORER = "https://explorer.goat.network";
-const SCAN8004 = "https://8004scan.io/agents/35?chain=2345";
+const SCAN8004 = "https://8004scan.io/agents?chain=2345";
 
 const bot = new TelegramBot(token, { polling: true });
 const histories = new Map<number, Anthropic.MessageParam[]>();

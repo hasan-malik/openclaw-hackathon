@@ -29,6 +29,8 @@ export function explorerAddr(addr: Address | string) {
   return `https://explorer.goat.network/address/${addr}`;
 }
 
-export function agentScanUrl(agentId: string | number) {
-  return `https://8004scan.io/agents/${agentId}?chain=2345`;
+// 8004scan only has a list view; there are no per-agent detail pages.
+// Link to the chain-filtered list so judges land where Agent #35 appears.
+export function agentScanUrl(_agentId?: string | number) {
+  return `https://8004scan.io/agents?chain=2345`;
 }

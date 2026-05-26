@@ -29,9 +29,10 @@ export function AgentHeader({ agentName, agentId, walletAddress, usdcBalance, re
             <span className="font-mono text-sm">{agentName}</span>
             {agentId && (
               <Link
-                href={`https://8004scan.io/agents/${agentId}?chain=2345`}
+                href="https://8004scan.io/agents?chain=2345"
                 target="_blank"
                 className="ml-1 inline-flex items-center gap-1 text-accent hover:underline"
+                title="View Agent #35 on the ERC-8004 registry list"
               >
                 #{agentId}
                 <ExternalLink size={11} />
