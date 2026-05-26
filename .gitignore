@@ -53,3 +53,6 @@ tsconfig.tsbuildinfo
 
 # Vercel
 .vercel
+
+# Task files — local only, never commit
+tasks/

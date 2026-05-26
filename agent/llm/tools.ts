@@ -5,6 +5,7 @@ import { getAgentStatus } from "@/lib/agent-status";
 import { isTargetInScope, signScopeGrant } from "@onchain/scope-grant";
 import { triggerPayment, hasX402Configured } from "@onchain/x402";
 import type { Finding, Severity, ScopeGrant } from "@shared/types";
+import { SKILL_TOOL_SCHEMAS, runSkill } from "./skill-adapter";
 
 export type ToolSchema = {
   name: string;
@@ -111,7 +112,8 @@ export const TOOL_SCHEMAS: ToolSchema[] = [
       },
       required: ["findingId", "reason"]
     }
-  }
+  },
+  ...SKILL_TOOL_SCHEMAS
 ];
 
 type ToolHandler = (input: any) => Promise<unknown>;
@@ -315,7 +317,12 @@ const HANDLERS: Record<string, ToolHandler> = {
       billing: { ...finding.billing, status: "disputed" }
     });
     return { ok: true, findingId, status: "disputed", reason };
-  }
+  },
+
+  sql_injection_attack: async ({ targetUrl }: { targetUrl: string }) => runSkill("sql_injection_attack", targetUrl),
+  port_scan: async ({ targetUrl }: { targetUrl: string }) => runSkill("port_scan", targetUrl),
+  ssl_check: async ({ targetUrl }: { targetUrl: string }) => runSkill("ssl_check", targetUrl),
+  credential_exposure: async ({ targetUrl }: { targetUrl: string }) => runSkill("credential_exposure", targetUrl)
 };
 
 export async function callTool(name: string, input: unknown): Promise<string> {

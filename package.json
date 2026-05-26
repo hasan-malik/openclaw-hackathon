@@ -1,6 +1,6 @@
 {
   "name": "shieldclaw",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,10 +11,12 @@
     "register": "tsx onchain/register-agent.ts",
     "sign-scope": "tsx scripts/sign-scope-grant.ts",
     "wallet": "tsx scripts/generate-wallet.ts",
+    "demo-target": "node demo-target/server.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.32.1",
+    "@goatnetwork/agentkit": "latest",
     "clsx": "2.1.1",
     "dotenv": "16.4.5",
     "goatx402-sdk-server": "^0.1.0",
@@ -24,6 +26,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "tailwind-merge": "2.5.4",
+    "telegraf": "^4.16.3",
     "viem": "2.21.16",
     "zod": "3.23.8"
   },
@@ -37,5 +40,9 @@
     "tailwindcss": "3.4.13",
     "tsx": "4.19.1",
     "typescript": "5.6.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"],
+    "blockExoticSubdeps": false
   }
 }
