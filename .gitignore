@@ -1,0 +1,46 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Wallet / chain
+keystore/
+*.keystore
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Scanner output
+scans/
+findings/*.json
+!findings/.gitkeep
+
+# Local agent state
+.openclaw/
+.clawup/
