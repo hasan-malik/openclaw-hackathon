@@ -20,6 +20,10 @@ import { pricingForSeverity } from "./scanner";
 const MASTER_AGENT_ID = process.env.AGENT_ID || "shieldclaw-orchestrator-001";
 const RECEIVING_WALLET = (process.env.GOATX402_RECEIVING_WALLET ?? "0x0000000000000000000000000000000000000000") as `0x${string}`;
 const PAYER_WALLET = (process.env.AGENT_ADDRESS ?? "0x0000000000000000000000000000000000000000") as `0x${string}`;
+// Hard cap per scan so the demo never runs out of USDC. Production prices stay
+// in the finding records ($20 critical / $5 high etc); only the actual x402
+// charge is scaled down. Override via MAX_SCAN_CHARGE_USDC.
+const MAX_SCAN_CHARGE_USDC = parseFloat(process.env.MAX_SCAN_CHARGE_USDC ?? "0.10");
 
 async function sendTelegram(text: string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -65,29 +69,37 @@ export async function runOrchestratedScan(targetUrl: string): Promise<void> {
   const duration = Math.round((Date.now() - scanStart) / 1000);
 
   // ── x402 payment for total findings ─────────────────────────────────────────
+  // Production-priced sum is shown to the user; actual on-chain charge is
+  // capped to MAX_SCAN_CHARGE_USDC so the demo wallet never runs dry.
   let paymentId: string | null = null;
-  let totalUsdc = "0.00";
+  let txHash: string | null = null;
+  let explorerUrl: string | null = null;
+  let productionUsdc = "0.00";
+  let chargedUsdc = "0.00";
 
   if (found.length > 0) {
-    // Sum per-finding prices (each specialist already stored the Finding with billing)
     const storedFindings = listFindings();
     const ourFindings = storedFindings.filter((f) =>
       found.some((r) => r.findingId === f.findingId)
     );
-    totalUsdc = ourFindings
+    productionUsdc = ourFindings
       .reduce((sum, f) => sum + parseFloat(f.billing.amountUsdc), 0)
       .toFixed(2);
 
-    if (hasX402Configured() && parseFloat(totalUsdc) > 0) {
+    chargedUsdc = Math.min(parseFloat(productionUsdc), MAX_SCAN_CHARGE_USDC).toFixed(2);
+
+    if (hasX402Configured() && parseFloat(chargedUsdc) > 0) {
       try {
         const payment = await triggerPayment({
           findingId: `batch-${scanStart}`,
-          amountUsdc: totalUsdc,
+          amountUsdc: chargedUsdc,
           payerWallet: PAYER_WALLET,
           receivingWallet: RECEIVING_WALLET,
-          description: `ShieldClaw scan: ${found.length} vulnerabilities found in ${targetUrl}`
+          description: `ShieldClaw scan: ${found.length} vulnerabilities in ${targetUrl} (demo-scaled charge)`
         });
         paymentId = payment.paymentId;
+        txHash = payment.txHash;
+        explorerUrl = payment.explorerUrl;
       } catch (err) {
         console.error("[orchestrator] x402 payment failed:", err);
       }
@@ -118,11 +130,16 @@ export async function runOrchestratedScan(targetUrl: string): Promise<void> {
     ``,
     ...(refused.length > 0 ? [`⛔ *Refused (no scope grant): ${refused.length}*`, ...refusalLines, ``] : []),
     found.length > 0
-      ? `💰 *CHARGED: ${totalUsdc} USDC via x402*${paymentId ? `\n   Payment: \`${paymentId}\`` : ""}`
+      ? [
+          `💰 *Production list: ${productionUsdc} USDC*`,
+          `   ⚡ *On-chain charge (demo-scaled): ${chargedUsdc} USDC*`,
+          paymentId ? `   x402 order: \`${paymentId}\`` : null,
+          txHash ? `   tx: [${txHash.slice(0, 16)}…](${explorerUrl})` : null
+        ].filter(Boolean).join("\n")
       : `💰 No charge — no vulnerabilities found.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
   ].join("\n");
 
   await sendTelegram(report);
-  console.log(`[orchestrator] scan complete — ${found.length} findings, ${totalUsdc} USDC`);
+  console.log(`[orchestrator] scan complete — ${found.length} findings, list=${productionUsdc} USDC, charged=${chargedUsdc} USDC, tx=${txHash ?? "—"}`);
 }
