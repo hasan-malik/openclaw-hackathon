@@ -1,0 +1,103 @@
+import "dotenv/config";
+import TelegramBot from "node-telegram-bot-api";
+import type Anthropic from "@anthropic-ai/sdk";
+import { runChatTurn } from "./llm/loop";
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) {
+  console.error("[bot] TELEGRAM_BOT_TOKEN missing in .env");
+  process.exit(1);
+}
+
+const bot = new TelegramBot(token, { polling: true });
+const histories = new Map<number, Anthropic.MessageParam[]>();
+
+const WELCOME =
+  "I'm *ShieldClaw* — an autonomous security auditing agent on GOAT Network mainnet (Agent ID #35).\n\n" +
+  "I scan customer-authorised targets, hash findings on-chain, and bill per verified finding via x402.\n\n" +
+  "Try:\n" +
+  "• `What do you do?`\n" +
+  "• `Show me the latest findings`\n" +
+  "• `Authorise a scan of juice-shop.demo.local for 24 hours`\n" +
+  "• `Scan example.com` _(I'll refuse — it's not in scope)_\n\n" +
+  "Commands: /start /reset /id";
+
+async function sendSafe(chatId: number, text: string, opts?: TelegramBot.SendMessageOptions) {
+  try {
+    return await bot.sendMessage(chatId, text, opts);
+  } catch (err) {
+    // Markdown parse failures fall back to plain text.
+    return bot.sendMessage(chatId, text);
+  }
+}
+
+function chunk(text: string, n = 3800): string[] {
+  if (text.length <= n) return [text];
+  const out: string[] = [];
+  for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n));
+  return out;
+}
+
+bot.on("message", async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text?.trim();
+  if (!text) return;
+
+  if (text === "/start") {
+    histories.set(chatId, []);
+    await sendSafe(chatId, WELCOME, { parse_mode: "Markdown" });
+    return;
+  }
+  if (text === "/reset") {
+    histories.set(chatId, []);
+    await sendSafe(chatId, "Cleared. Fresh conversation.");
+    return;
+  }
+  if (text === "/id") {
+    await sendSafe(
+      chatId,
+      `chat_id: \`${chatId}\`\nuser: \`${msg.from?.username ?? msg.from?.first_name ?? "?"}\``,
+      { parse_mode: "Markdown" }
+    );
+    return;
+  }
+
+  const history = histories.get(chatId) ?? [];
+
+  await bot.sendChatAction(chatId, "typing").catch(() => {});
+  const typingTimer = setInterval(() => {
+    bot.sendChatAction(chatId, "typing").catch(() => {});
+  }, 4500);
+
+  try {
+    const result = await runChatTurn(text, history);
+    histories.set(chatId, result.history);
+
+    if (result.traces.length > 0) {
+      const tracesText = result.traces
+        .map((t) => {
+          const argStr = JSON.stringify(t.input);
+          const short = argStr.length > 80 ? argStr.slice(0, 77) + "..." : argStr;
+          return `🔧 \`${t.name}\` ${short}`;
+        })
+        .join("\n");
+      await sendSafe(chatId, tracesText, { parse_mode: "Markdown" });
+    }
+
+    const reply = result.reply || "_(no reply)_";
+    for (const piece of chunk(reply)) {
+      await sendSafe(chatId, piece, { parse_mode: "Markdown" });
+    }
+  } catch (err) {
+    await sendSafe(chatId, `⚠️ ${(err as Error).message ?? "unknown error"}`);
+  } finally {
+    clearInterval(typingTimer);
+  }
+});
+
+bot.on("polling_error", (err) => {
+  console.error("[bot] polling error:", (err as Error).message);
+});
+
+console.log("[bot] ShieldClaw Telegram bot started. Long-polling for messages...");
+console.log(`[bot] Open https://t.me/shieldclaw_agent_bot and send any message.`);

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "agent": "tsx agent/worker.ts",
+    "bot": "tsx agent/telegram-bot.ts",
     "register": "tsx onchain/register-agent.ts",
     "sign-scope": "tsx scripts/sign-scope-grant.ts",
     "wallet": "tsx scripts/generate-wallet.ts",
