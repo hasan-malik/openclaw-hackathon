@@ -44,3 +44,9 @@ findings/*.json
 # Local agent state
 .openclaw/
 .clawup/
+.shieldclaw/
+
+# Next.js
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo

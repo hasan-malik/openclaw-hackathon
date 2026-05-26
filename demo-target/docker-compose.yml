@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: shieldclaw-demo-target
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  planted-static:
+    image: nginx:alpine
+    container_name: shieldclaw-planted-static
+    ports:
+      - "8081:80"
+    volumes:
+      - ./planted:/usr/share/nginx/html:ro
+    restart: unless-stopped

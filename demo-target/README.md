@@ -1,27 +1,30 @@
 # demo-target/
 
-The deliberately vulnerable target that ShieldClaw scans on stage. The showmanship piece.
+The deliberately-vulnerable target ShieldClaw scans on stage.
 
 **Owner:** _TBD_
 
-## Plan
+## Layout
 
-Base: **OWASP Juice Shop** (or DVWA) running in Docker on the demo box.
+- `docker-compose.yml` — boots OWASP Juice Shop on `:3000` and an Nginx serving `planted/` on `:8081`.
+- `planted/` — controlled vulnerabilities the agent must reliably catch in the 2-min demo:
+  - `planted/.env` — reachable secrets file (`/static/.env` on the demo Nginx).
+  - `planted/index.html` — leaked Stripe-shaped key inside an HTML comment.
+  - `planted/assets/jquery-1.6.4.min.js` — placeholder; replace with the real jQuery 1.6.4 source so the nuclei technology-detect template fires.
 
-Planted vulns the agent must reliably catch on stage:
+## Bring it up
 
-1. **Exposed `.env`** at a guessable path — `/static/.env` or similar.
-2. **Known-vulnerable library** referenced in the page source (e.g. jQuery 1.x with CVE-2020-11023).
-3. **Leaked API key** in a public file or HTML comment — pattern the credential scanner will flag.
+```
+cd demo-target
+docker compose up -d
+curl http://localhost:8081/.env
+curl http://localhost:3000
+```
 
-Add a 4th only if Phase 4 has time left.
+Set `DEMO_TARGET_URL=http://localhost:8081` (or `:3000` for Juice Shop) in `.env`, sign a scope grant with `npm run sign-scope`, then `npm run agent`.
 
-## Rules
+## Rules of the planted vulns
 
-- Vulns must be **reliably triggered by nuclei templates** we control. No subtle bugs that might miss on stage.
-- The target's URL goes in `.env` as `DEMO_TARGET_URL`. The matching `ScopeGrant` for that URL gets pre-signed and stored as `DEMO_SCOPE_GRANT_ID`.
-- **Never expose this target to the internet on a real domain.** Keep it on the demo box only, behind ngrok if needed.
-
-## Before writing code
-
-Read [shared/SCHEMA.md](../shared/SCHEMA.md) so the planted vulns map cleanly to `Finding` shapes.
+- Must be **reliably triggered** by stock nuclei templates. No subtle bugs.
+- Must look believable enough to be a real finding on stage but **not be a real key or credential**.
+- Never expose this on the public internet behind a real domain. Localhost or ngrok only.

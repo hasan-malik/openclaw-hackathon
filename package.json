@@ -1,0 +1,38 @@
+{
+  "name": "shieldclaw",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "agent": "tsx agent/worker.ts",
+    "register": "tsx onchain/register-agent.ts",
+    "sign-scope": "tsx scripts/sign-scope-grant.ts",
+    "wallet": "tsx scripts/generate-wallet.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "viem": "2.21.16",
+    "zod": "3.23.8",
+    "clsx": "2.1.1",
+    "tailwind-merge": "2.5.4",
+    "lucide-react": "0.451.0",
+    "node-telegram-bot-api": "0.66.0",
+    "dotenv": "16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.7.5",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.0",
+    "@types/node-telegram-bot-api": "0.64.7",
+    "typescript": "5.6.3",
+    "tailwindcss": "3.4.13",
+    "postcss": "8.4.47",
+    "autoprefixer": "10.4.20",
+    "tsx": "4.19.1"
+  }
+}

@@ -1,44 +1,69 @@
 # ShieldClaw
 
-Autonomous security auditing agent. Carries cryptographic proof of consent (ERC-8004), bills per verified finding (x402 / USDC), anchors findings on GOAT Network.
+Autonomous security auditing agent. ERC-8004 identity on GOAT mainnet, per-finding x402 billing, cryptographic proof of scope authorisation, continuous scanning.
 
 > The dominant strategy for security auditing today is wait six months and hope. ShieldClaw replaces it with a continuously-running agent that carries cryptographic proof of consent, bills per verified finding, and stakes its reputation on every report it files.
 
 OpenClaw + Bitcoin + GOAT Network hackathon — May 2026.
 
-## Repo layout
+## What's in here
 
 ```
-agent/         OpenClaw agent app (loop config, tool defs, finding pipeline)
-onchain/       ERC-8004 scope-grant schema, registration scripts, x402 hooks
-shared/        Cross-cutting data shapes (Finding, ScopeGrant) — read first
-demo-target/   Deliberately vulnerable target + planted vulns for the demo
-scripts/       Setup, deploy, run-end-to-end
+app/                 Next.js dashboard (App Router, Tailwind)
+components/          UI primitives (severity badge, finding card, scope-grant card)
+lib/                 Frontend utilities + agent-status reader
+agent/               Scan loop, scanner wrapper, store, notifiers
+onchain/             GOAT mainnet config, ERC-8004 registration, EIP-712 scope grants, x402 client
+shared/              SCHEMA.md + Zod TS types (the cross-cutting contract)
+scripts/             CLIs — wallet, sign-scope, register
+demo-target/         Juice Shop + planted vulns via docker-compose
 ```
 
-## Joining now? Read these in order
+## Quick start
 
-1. [CLAUDE.md](CLAUDE.md) — project context, build strategy (we are **not** using ClawUp), GOAT mainnet constants, design moves, phase plan.
-2. [SKILL.md](SKILL.md) — priority lens for trade-offs. The five judging moments we optimize for.
-3. [shared/SCHEMA.md](shared/SCHEMA.md) — `Finding` and `ScopeGrant` data shapes. The contract every slice depends on.
-4. The slice you'll own: [agent/](agent/), [onchain/](onchain/), [demo-target/](demo-target/), or [scripts/](scripts/) — each has a README explaining what goes inside.
+```bash
+npm install
+cp .env.example .env
 
-Then copy `.env.example` → `.env` (constants are pre-filled for GOAT mainnet; you only fill secrets), pick a slice, and open a feature branch.
+npm run wallet              # generate agent wallet → paste into .env
+# (request gas + USDC via the forms linked in CLAUDE.md)
+
+npm run register            # ERC-8004 mainnet registration → save AGENT_ID into .env
+npm run sign-scope          # customer signs a scope grant for the demo target
+
+cd demo-target && docker compose up -d && cd ..
+
+npm run dev                 # dashboard at http://localhost:3000
+npm run agent               # scan loop, in another terminal
+```
+
+The dashboard works **immediately** after `npm install` — it seeds mock findings so the UI is alive while the real wallet and scanner are being set up.
+
+## Joining the team? Read these in order
+
+1. [CLAUDE.md](CLAUDE.md) — full project context, build strategy, GOAT mainnet constants.
+2. [SKILL.md](SKILL.md) — the priority lens (five judging moments).
+3. [shared/SCHEMA.md](shared/SCHEMA.md) — `Finding` + `ScopeGrant` data shapes. The contract every slice depends on.
+4. [shared/types.ts](shared/types.ts) — Zod schemas codifying the same shapes.
+5. The slice you'll own — each subdirectory's README explains its surface.
+
+## Stack
+
+| Piece | Choice | Why |
+|---|---|---|
+| Agent framework | **OpenClaw** (standalone today, ClawUp port if it returns) | Submission gate — but ClawUp was down at scaffold time, so the agent is built to run on its own and dock into ClawUp later. |
+| Identity | **ERC-8004 on GOAT mainnet** | Submission gate. Registry `0x8004…`, chain 2345. |
+| Payments | **x402 / USDC.e** on GOAT | Per-finding billing. Submission gate (visible payment during demo). |
+| Chain calls | **viem** | TS-first, no provider config dance. |
+| Scanner | **nuclei** via subprocess | Open-source, mature, hackathon-fast. |
+| Notifier | Telegram + Slack webhook | Both supported, either is enough for the demo. |
+| Frontend | **Next.js 14 (App Router) + Tailwind** | Single project, single deploy. |
+| Storage | JSON file under `.shieldclaw/` | No DB to set up. Survives restart. |
 
 ## Team workflow
 
 - `main` is protected. Short-lived feature branches → PR → merge.
-- One owner per deliverable (agent, onchain, demo-target, slack, deploy).
-- Define interfaces in `shared/` *before* writing implementations.
-- Secrets in pinned team chat, never the repo.
-- One person owns the live demo box.
-
-## The five deliverables (what we ship)
-
-1. Agent app (this repo) running on OpenClaw
-2. Deployed live instance (VPS or laptop+ngrok)
-3. On-chain agent identity (ERC-8004 on GOAT testnet)
-4. Vulnerable demo target (Juice Shop + planted vulns)
-5. Slack/Telegram findings channel
-
-See [CLAUDE.md](CLAUDE.md) for full context.
+- One owner per slice (agent, onchain, demo-target, scripts, frontend).
+- Define interfaces in `shared/types.ts` *before* writing implementations.
+- Secrets in pinned team chat. Never the repo.
+- One person owns the deployed demo box.
