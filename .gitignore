@@ -44,3 +44,6 @@ findings/*.json
 # Local agent state
 .openclaw/
 .clawup/
+
+# Task files — local only, never commit
+tasks/

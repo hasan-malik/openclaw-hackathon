@@ -1,0 +1,31 @@
+{
+  "name": "shieldclaw",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "register-agent": "tsx scripts/register-agent.ts",
+    "demo-target": "node demo-target/server.js",
+    "install:pnpm": "pnpm install --config.blockExoticSubdeps=false"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@goatnetwork/agentkit": "latest",
+    "dotenv": "^16.4.5",
+    "goatx402-sdk-server": "latest",
+    "telegraf": "^4.16.3",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"],
+    "blockExoticSubdeps": false
+  }
+}
