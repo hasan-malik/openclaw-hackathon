@@ -10,7 +10,8 @@ import {
   sqlInjectionAttack,
   portScanAttack,
   sslCheckAttack,
-  credentialExposureAttack
+  credentialExposureAttack,
+  walletAuthAttack
 } from "../../src/skills";
 import type { Finding, Severity, FindingCategory } from "@shared/types";
 import { listGrants, upsertFinding } from "@agent/store";
@@ -29,7 +30,7 @@ const CATEGORY_MAP: Record<AttackResult["attackType"], FindingCategory> = {
   SQL_INJECTION: "rce",
   PORT_SCAN: "misconfig",
   SSL_CHECK: "misconfig",
-  CREDENTIAL_EXPOSURE: "exposed-secret"
+  CREDENTIAL_EXPOSURE: "exposed-secret",
 };
 
 function hashEvidence(blob: string) {
@@ -105,10 +106,16 @@ const RUNNERS: Record<string, SkillRunner> = {
   sql_injection_attack: sqlInjectionAttack,
   port_scan: portScanAttack,
   ssl_check: sslCheckAttack,
-  credential_exposure: credentialExposureAttack
+  credential_exposure: credentialExposureAttack,
+  wallet_auth_bypass: walletAuthAttack,
 };
 
-export async function runSkill(name: keyof typeof RUNNERS, targetUrl: string) {
+// agentId is optional — specialists pass their own ID; general agent uses grant.agentId
+export async function runSkill(
+  name: keyof typeof RUNNERS,
+  targetUrl: string,
+  overrideAgentId?: string
+) {
   const grant = activeGrantFor(targetUrl);
   if (!grant) {
     return {
@@ -132,7 +139,8 @@ export async function runSkill(name: keyof typeof RUNNERS, targetUrl: string) {
     };
   }
 
-  const finding = attackToFinding(result, targetUrl, grant.grantId, grant.agentId);
+  const agentId = overrideAgentId ?? grant.agentId;
+  const finding = attackToFinding(result, targetUrl, grant.grantId, agentId);
   upsertFinding(finding);
   await notify(finding).catch(() => {});
 
