@@ -34,20 +34,22 @@ function rand(min: number, max: number) {
 }
 
 export function GeoAttackFeed() {
-  const [attacks, setAttacks] = useState<Attack[]>(() =>
-    Array.from({ length: 8 }, (_, i) => {
-      const o = ORIGINS[i % ORIGINS.length];
-      return {
-        origin: o.o,
-        region: `${o.flag} ${o.r}`,
-        vector: VECTORS[Math.floor(rand(0, VECTORS.length))],
-        blocked: Math.random() > 0.15,
-        time: nowStr()
-      };
-    })
-  );
+  const [attacks, setAttacks] = useState<Attack[]>([]);
 
   useEffect(() => {
+    setAttacks(
+      Array.from({ length: 8 }, (_, i) => {
+        const o = ORIGINS[i % ORIGINS.length];
+        return {
+          origin: o.o,
+          region: `${o.flag} ${o.r}`,
+          vector: VECTORS[Math.floor(rand(0, VECTORS.length))],
+          blocked: Math.random() > 0.15,
+          time: nowStr()
+        };
+      })
+    );
+
     const id = setInterval(() => {
       setAttacks((curr) => {
         const o = ORIGINS[Math.floor(Math.random() * ORIGINS.length)];

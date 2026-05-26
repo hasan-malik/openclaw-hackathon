@@ -28,10 +28,12 @@ function ts() {
 }
 
 export function ActivityTerminal() {
-  const [lines, setLines] = useState<string[]>(() => SEED.slice(0, 8).map((s) => `[${ts()}] ${s}`));
+  const [lines, setLines] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setLines(SEED.slice(0, 8).map((s) => `[${ts()}] ${s}`));
+
     const id = setInterval(() => {
       setLines((curr) => {
         const next = SEED[Math.floor(Math.random() * SEED.length)];

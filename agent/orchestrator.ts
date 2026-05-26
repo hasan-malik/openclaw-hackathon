@@ -132,12 +132,12 @@ export async function runOrchestratedScan(targetUrl: string, chatId?: number | s
     ...(refused.length > 0 ? [`⛔ *Refused (no scope grant): ${refused.length}*`, ...refusalLines, ``] : []),
     found.length > 0
       ? [
-          `💰 *Production list: ${productionUsdc} USDC*`,
-          `   ⚡ *On-chain charge (demo-scaled): ${chargedUsdc} USDC*`,
-          paymentId ? `   x402 order: \`${paymentId}\`` : null,
-          txHash ? `   tx: [${txHash.slice(0, 16)}…](${explorerUrl})` : null
+          `💰 *Total charged: ${chargedUsdc} USDC (auto via x402)*`,
+          paymentId ? `   ✅ Payment fired automatically` : `   ⚠️ x402 credentials not set — charge skipped`,
+          paymentId ? `   Order: \`${paymentId}\`` : null,
+          txHash ? `   Tx: [${txHash.slice(0, 16)}…](${explorerUrl})` : null
         ].filter(Boolean).join("\n")
-      : `💰 No charge — no vulnerabilities found.`,
+      : `💰 *No charge — no vulnerabilities found.*`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
   ].join("\n");
 
