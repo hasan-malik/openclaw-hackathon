@@ -39,13 +39,6 @@ npm run agent               # scan loop, in another terminal
 
 The dashboard works **immediately** after `npm install` — it seeds mock findings so the UI is alive while the real wallet and scanner are being set up.
 
-## Joining the team? Read these in order
-
-1. [CLAUDE.md](CLAUDE.md) — full project context, build strategy, GOAT mainnet constants.
-2. [SKILL.md](SKILL.md) — the priority lens (five judging moments).
-3. [shared/SCHEMA.md](shared/SCHEMA.md) — `Finding` + `ScopeGrant` data shapes. The contract every slice depends on.
-4. [shared/types.ts](shared/types.ts) — Zod schemas codifying the same shapes.
-5. The slice you'll own — each subdirectory's README explains its surface.
 
 ## Stack
 
@@ -60,10 +53,3 @@ The dashboard works **immediately** after `npm install` — it seeds mock findin
 | Frontend | **Next.js 14 (App Router) + Tailwind** | Single project, single deploy. |
 | Storage | JSON file under `.shieldclaw/` | No DB to set up. Survives restart. |
 
-## Team workflow
-
-- `main` is protected. Short-lived feature branches → PR → merge.
-- One owner per slice (agent, onchain, demo-target, scripts, frontend).
-- Define interfaces in `shared/types.ts` *before* writing implementations.
-- Secrets in pinned team chat. Never the repo.
-- One person owns the deployed demo box.
