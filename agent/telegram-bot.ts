@@ -2,6 +2,7 @@ import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
 import type Anthropic from "@anthropic-ai/sdk";
 import { runChatTurn } from "./llm/loop";
+import { runOrchestratedScan } from "./orchestrator";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -15,6 +16,8 @@ const SCAN8004 = "https://8004scan.io/agents?chain=2345";
 
 const bot = new TelegramBot(token, { polling: true });
 const histories = new Map<number, Anthropic.MessageParam[]>();
+
+const DEMO_TARGET = process.env.DEMO_TARGET_URL ?? "http://localhost:4000";
 
 // Pulls finding IDs / tx hashes mentioned in a reply so we can attach
 // matching inline buttons that deep-link into the dashboard + explorer.
@@ -43,7 +46,8 @@ const WELCOME =
   "• `Show me the latest findings`\n" +
   "• `Authorise a scan of juice-shop.demo.local for 24 hours`\n" +
   "• `Scan example.com` _(I'll refuse — it's not in scope)_\n\n" +
-  "Commands: /start /reset /id";
+  `Commands: /start /reset /id /scan [url]\n` +
+  `Demo: /scan ${DEMO_TARGET}`;
 
 async function sendSafe(chatId: number, text: string, opts?: TelegramBot.SendMessageOptions) {
   try {
@@ -82,6 +86,17 @@ bot.on("message", async (msg) => {
       `chat_id: \`${chatId}\`\nuser: \`${msg.from?.username ?? msg.from?.first_name ?? "?"}\``,
       { parse_mode: "Markdown" }
     );
+    return;
+  }
+
+  // /scan [optional-url] — dispatch all 6 specialist agents via orchestrator
+  if (text.startsWith("/scan")) {
+    const parts = text.split(/\s+/);
+    const targetUrl = parts[1] ?? DEMO_TARGET;
+    await sendSafe(chatId, `🔴 Dispatching 6 specialist agents against \`${targetUrl}\`…`, { parse_mode: "Markdown" });
+    runOrchestratedScan(targetUrl).catch((err) => {
+      sendSafe(chatId, `⚠️ Orchestrator error: ${(err as Error).message}`);
+    });
     return;
   }
 
