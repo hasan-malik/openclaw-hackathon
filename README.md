@@ -16,12 +16,14 @@ demo-target/   Deliberately vulnerable target + planted vulns for the demo
 scripts/       Setup, deploy, run-end-to-end
 ```
 
-## Quick start
+## Joining now? Read these in order
 
-1. Read [shared/SCHEMA.md](shared/SCHEMA.md) — the data shapes everything agrees on.
-2. Read [CLAUDE.md](CLAUDE.md) — project context, scope, design moves.
-3. Copy `.env.example` → `.env`, fill in your testnet keys + Slack webhook.
-4. Pick a slice from [Phases](CLAUDE.md#phases) and open a branch.
+1. [CLAUDE.md](CLAUDE.md) — project context, build strategy (we are **not** using ClawUp), GOAT mainnet constants, design moves, phase plan.
+2. [SKILL.md](SKILL.md) — priority lens for trade-offs. The five judging moments we optimize for.
+3. [shared/SCHEMA.md](shared/SCHEMA.md) — `Finding` and `ScopeGrant` data shapes. The contract every slice depends on.
+4. The slice you'll own: [agent/](agent/), [onchain/](onchain/), [demo-target/](demo-target/), or [scripts/](scripts/) — each has a README explaining what goes inside.
+
+Then copy `.env.example` → `.env` (constants are pre-filled for GOAT mainnet; you only fill secrets), pick a slice, and open a feature branch.
 
 ## Team workflow
 

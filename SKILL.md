@@ -9,17 +9,25 @@ A guide for agents and humans on what to prioritize while building ShieldClaw. A
 
 ## The single judging moment we optimize for
 
-A judge sees the agent scan a planted-vuln target live on stage, watches a finding land in the demo Slack channel, sees the ERC-8004 scope grant referenced in the finding, and sees the x402 USDC charge fire on the testnet block explorer.
+A judge:
+1. Asks the agent what it does (usability / self-disclosure test).
+2. Watches the agent scan a planted-vuln target and post a finding to Telegram/Slack.
+3. Sees the agent's identity on https://8004scan.io/agents?chain=2345 (ERC-8004 mainnet submission gate).
+4. Triggers a machine payment in-chat and sees x402 / USDC fire on https://explorer.goat.network/ (402-integrity test).
+5. Attempts a high-risk action (out-of-scope scan, raised spending limit) and sees the agent refuse (human-in-the-loop guardrail test).
 
-**Every decision should be evaluated against: "does this make that moment work, or risk it?"**
+**Every decision should be evaluated against: "does this make those five moments work, or risk one?"**
+
+ClawUp is down. We are not deploying on it. The agent runs locally (laptop or VPS). If ClawUp returns near demo time, porting is a bonus, not a goal.
 
 ## Priority order when trade-offs appear
 
-1. **Live demo works** — the agent visibly does the thing on stage.
-2. **Authorization story is airtight** — refusing an out-of-scope scan is as impressive as a finding.
-3. **Per-finding billing is visible** — judges can see the on-chain artifact.
-4. **Code quality** — only after the above three are solid.
-5. **Generalization / extensibility** — out of scope for the hackathon. Don't build it.
+1. **Submission gates pass** — agent registered on ERC-8004 mainnet AND x402 payment provably fires. Without these, the submission is rejected on the form.
+2. **Live demo works** — the agent visibly does the thing in 2 minutes, no slides.
+3. **Authorization-refusal story is airtight** — judges actively test high-risk commands. Refusing an out-of-scope scan is as impressive as a finding.
+4. **Per-finding billing is visible on the explorer** — judges click the tx hash.
+5. **Code quality** — only after 1–4 are solid.
+6. **Generalization / extensibility / ClawUp port** — bonus only. Don't build it on the critical path.
 
 ## Heuristics
 
